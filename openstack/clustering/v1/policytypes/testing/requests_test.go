@@ -14,7 +14,7 @@ func TestGetPolicyType(t *testing.T) {
 
 	HandlePolicyTypeGet(t)
 
-	actual,err := policytypes.Get(fake.ServiceClient(), "1234").Extract()
+	actual, err := policytypes.Get(fake.ServiceClient(), "1234").Extract()
 	th.AssertNoErr(t, err)
 
 	th.AssertDeepEquals(t, ExpectedPolicyTypeDetail, actual)

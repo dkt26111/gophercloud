@@ -1,13 +1,13 @@
 package testing
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"testing"
 
+	"github.com/gophercloud/gophercloud/openstack/clustering/v1/policytypes"
 	th "github.com/gophercloud/gophercloud/testhelper"
 	fake "github.com/gophercloud/gophercloud/testhelper/client"
-	"github.com/gophercloud/gophercloud/openstack/clustering/v1/policytypes"
 )
 
 const PolicyTypeDetailBody = `
@@ -89,14 +89,14 @@ var (
 				"updatable":   false,
 			},
 			Servergroup: map[string]interface{}{
-				"description":"Properties of the VM server group",
-				"required":false,
+				"description": "Properties of the VM server group",
+				"required":    false,
 				"schema": map[string]interface{}{
 					"name": map[string]interface{}{
-						"description":"The name of the server group",
-						"required":false,
-						"type":"String",
-						"updatable":false,
+						"description": "The name of the server group",
+						"required":    false,
+						"type":        "String",
+						"updatable":   false,
 					},
 					"policies": map[string]interface{}{
 						"constraints": []interface{}{
@@ -105,18 +105,18 @@ var (
 									"affinity",
 									"anti-affinity",
 								},
-								"type":"AllowedValues",
+								"type": "AllowedValues",
 							},
 						},
-						"default":"anti-affinity",
-						"description":"The server group policies.",
-						"required":false,
-						"type":"String",
-						"updatable":false,
+						"default":     "anti-affinity",
+						"description": "The server group policies.",
+						"required":    false,
+						"type":        "String",
+						"updatable":   false,
 					},
 				},
-				"type":"Map",
-				"updatable":false,
+				"type":      "Map",
+				"updatable": false,
 			},
 		},
 		SupportStatus: map[string][]policytypes.SupportStatusType{
