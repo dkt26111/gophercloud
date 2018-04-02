@@ -4,226 +4,80 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
-	"github.com/gophercloud/gophercloud/openstack/clustering/v1/policytypes"
+	"github.com/gophercloud/gophercloud/openstack/clustering/v1/policies"
 	th "github.com/gophercloud/gophercloud/testhelper"
 	fake "github.com/gophercloud/gophercloud/testhelper/client"
 )
 
-const FakePolicyTypetoGet = "fake-policytype"
-
-const PolicyTypeBody = `
+const PolicyListBody = `
 {
-	"policy_types": [
-		{
-			"name": "senlin.policy.affinity",
-			"version": "1.0",
-			"support_status": {
-				"1.0": [
-					{
-						"status": "SUPPORTED",
-						"since": "2016.10"
-					}
-				]
-			}
-		},
-		{
-			"name": "senlin.policy.health",
-			"version": "1.0",
-			"support_status": {
-				"1.0": [
-					{
-						"status": "EXPERIMENTAL",
-						"since": "2016.10"
-					}
-				]
-			}
-		},
-		{
-			"name": "senlin.policy.scaling",
-			"version": "1.0",
-			"support_status": {
-				"1.0": [
-					{
-						"status": "SUPPORTED",
-						"since": "2016.04"
-					}
-				]
-			}
-		},
-		{
-			"name": "senlin.policy.region_placement",
-			"version": "1.0",
-			"support_status": {
-				"1.0": [
-					{
-						"status": "EXPERIMENTAL",
-						"since": "2016.04"
-					},
-					{
-						"status": "SUPPORTED",
-						"since": "2016.10"
-					}
-				]
-			}
-		}
-	]
-}
-`
-
-const PolicyTypeDetailBody = `
-{
-    "policy_type": {
-    	"name": "senlin.policy.batch-1.0",
-		"schema": {
-		  "max_batch_size": {
-			"default": -1,
-			"description": "Maximum number of nodes that will be updated in parallel.",
-			"required": false,
-			"type": "Integer",
-			"updatable": false
-		  },
-		  "min_in_service": {
-			"default": 1,
-			"description": "Minimum number of nodes in service when performing updates.",
-			"required": false,
-			"type": "Integer",
-			"updatable": false
-		  },
-		  "pause_time": {
-			"default": 60,
-			"description": "Interval in seconds between update batches if any.",
-			"required": false,
-			"type": "Integer",
-			"updatable": false
-		  }
-		},
-		"support_status": {
-			"1.0": [
-			  {
-				"status": "EXPERIMENTAL",
-				"since": "2017.02"
-			  }
-			]
-		}
+  "policies": [
+    {
+      "created_at": "2018-04-02T21:43:30.000000",
+      "data": {},
+      "domain": null,
+      "id": "15ad976b-c07b-4ef9-9518-aa58cb5cd3a9",
+      "name": "delpol",
+      "project": "018cd0909fb44cd5bc9b7a3cd664920e",
+      "spec": {
+        "description": "A policy for choosing victim node(s) from a cluster for deletion.",
+        "properties": {
+          "criteria": "OLDEST_FIRST",
+          "destroy_after_deletion": true,
+          "grace_period": 60,
+          "reduce_desired_capacity": false
+        },
+        "type": "senlin.policy.deletion",
+        "version": 1
+      },
+      "type": "senlin.policy.deletion-1.0",
+      "updated_at": null,
+      "user": "fe43e41739154b72818565e0d2580819"
     }
+  ]
 }
 `
 
 var (
-	ExpectedPolicyTypes = []policytypes.PolicyType{
-		{
-			Name:    "senlin.policy.affinity",
-			Version: "1.0",
-			SupportStatus: map[string][]policytypes.SupportStatusType{
-				"1.0": {
-					{
-						Status: "SUPPORTED",
-						Since:  "2016.10",
-					},
-				},
-			},
-		},
-		{
-			Name:    "senlin.policy.health",
-			Version: "1.0",
-			SupportStatus: map[string][]policytypes.SupportStatusType{
-				"1.0": {
-					{
-						Status: "EXPERIMENTAL",
-						Since:  "2016.10",
-					},
-				},
-			},
-		},
-		{
-			Name:    "senlin.policy.scaling",
-			Version: "1.0",
-			SupportStatus: map[string][]policytypes.SupportStatusType{
-				"1.0": {
-					{
-						Status: "SUPPORTED",
-						Since:  "2016.04",
-					},
-				},
-			},
-		},
-		{
-			Name:    "senlin.policy.region_placement",
-			Version: "1.0",
-			SupportStatus: map[string][]policytypes.SupportStatusType{
-				"1.0": {
-					{
-						Status: "EXPERIMENTAL",
-						Since:  "2016.04",
-					},
-					{
-						Status: "SUPPORTED",
-						Since:  "2016.10",
-					},
-				},
-			},
-		},
-	}
+	ExpectedPolicyCreatedAt, _ = time.Parse(time.RFC3339, "2018-04-02T21:43:30.000000Z")
 
-	ExpectedPolicyTypeDetail = &policytypes.PolicyTypeDetail{
-		Name: "senlin.policy.batch-1.0",
-		Schema: map[string]interface{}{
-			"max_batch_size": map[string]interface{}{
-				"default":     float64(-1),
-				"description": "Maximum number of nodes that will be updated in parallel.",
-				"required":    false,
-				"type":        "Integer",
-				"updatable":   false,
-			},
-			"min_in_service": map[string]interface{}{
-				"default":     float64(1),
-				"description": "Minimum number of nodes in service when performing updates.",
-				"required":    false,
-				"type":        "Integer",
-				"updatable":   false,
-			},
-			"pause_time": map[string]interface{}{
-				"default":     float64(60),
-				"description": "Interval in seconds between update batches if any.",
-				"required":    false,
-				"type":        "Integer",
-				"updatable":   false,
-			},
-		},
-		SupportStatus: map[string][]policytypes.SupportStatusType{
-			"1.0": []policytypes.SupportStatusType{
-				{
-					Status: "EXPERIMENTAL",
-					Since:  "2017.02",
+	ExpectedPolicies = []policies.Policy{
+		{
+			CreatedAt:   &ExpectedPolicyCreatedAt,
+			Data:        map[string]interface{}{},
+			DomainUUID:  "",
+			ID:          "15ad976b-c07b-4ef9-9518-aa58cb5cd3a9",
+			Name:        "delpol",
+			ProjectUUID: "018cd0909fb44cd5bc9b7a3cd664920e",
+
+			Spec: map[string]interface{}{
+				"description": "A policy for choosing victim node(s) from a cluster for deletion.",
+				"properties": map[string]interface{}{
+					"criteria":                "OLDEST_FIRST",
+					"destroy_after_deletion":  true,
+					"grace_period":            float64(60),
+					"reduce_desired_capacity": false,
 				},
+				"type":    "senlin.policy.deletion",
+				"version": float64(1),
 			},
+			Type:      "senlin.policy.deletion-1.0",
+			UserUUID:  "fe43e41739154b72818565e0d2580819",
+			UpdatedAt: nil,
 		},
 	}
 )
 
-func HandlePolicyTypeList(t *testing.T) {
-	th.Mux.HandleFunc("/v1/policy-types",
-		func(w http.ResponseWriter, r *http.Request) {
-			th.TestMethod(t, r, "GET")
-			th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
+func HandlePolicyList(t *testing.T) {
+	th.Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "GET")
+		th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
 
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 
-			fmt.Fprintf(w, PolicyTypeBody)
-		})
-}
-
-func HandlePolicyTypeGet(t *testing.T) {
-	th.Mux.HandleFunc("/v1/policy-types/"+FakePolicyTypetoGet,
-		func(w http.ResponseWriter, r *http.Request) {
-			th.TestMethod(t, r, "GET")
-			th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
-
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
-			fmt.Fprintf(w, PolicyTypeDetailBody)
-		})
+		fmt.Fprintf(w, PolicyListBody)
+	})
 }

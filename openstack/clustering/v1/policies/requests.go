@@ -12,13 +12,13 @@ type ListOptsBuilder interface {
 
 // ListOpts params
 type ListOpts struct {
-	// Limit instructs List to refrain from sending excessively large lists of profiles
+	// Limit limits the number of Policies to return.
 	Limit int `q:"limit"`
 
 	// Marker and Limit control paging. Marker instructs List where to start listing from.
 	Marker string `q:"marker"`
 
-	// Marker and Limit control paging. Marker instructs List where to start listing from.
+	// Sorts the response by one or more attribute and optional sort direction combinations.
 	Sort string `q:"sort"`
 
 	// GlobalProject indicates whether to include resources for all projects or resources for the current project
@@ -37,8 +37,8 @@ func (opts ListOpts) ToPolicyListQuery() (string, error) {
 	return q.String(), err
 }
 
-// ListDetail instructs OpenStack to provide a list of policies.
-func ListDetail(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
+// List instructs OpenStack to retrieve a list of policies.
+func List(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 	url := policyListURL(client)
 	if opts != nil {
 		query, err := opts.ToPolicyListQuery()
@@ -52,4 +52,3 @@ func ListDetail(client *gophercloud.ServiceClient, opts ListOptsBuilder) paginat
 		return PolicyPage{pagination.LinkedPageBase{PageResult: r}}
 	})
 }
-
