@@ -138,14 +138,14 @@ func HandlePolicyList(t *testing.T) {
 		r.ParseForm()
 		marker := r.Form.Get("marker")
 		switch marker {
-			case "":
-				fmt.Fprintf(w, PolicyListBody1)
-			case "PolicyListBodyID1":
-				fmt.Fprintf(w, PolicyListBody2)
-			case "PolicyListBodyID2":
-				fmt.Fprintf(w, `{"policies":[]}`)
-			default:
-				t.Fatalf("Unexpected marker: [%s]", marker)
+		case "":
+			fmt.Fprintf(w, PolicyListBody1)
+		case "PolicyListBodyID1":
+			fmt.Fprintf(w, PolicyListBody2)
+		case "PolicyListBodyID2":
+			fmt.Fprintf(w, `{"policies":[]}`)
+		default:
+			t.Fatalf("Unexpected marker: [%s]", marker)
 		}
 	})
 }
