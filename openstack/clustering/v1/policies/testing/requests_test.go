@@ -36,6 +36,6 @@ func TestListPolicies(t *testing.T) {
 	th.AssertNoErr(t, err)
 
 	if count != 2 {
-		t.Errorf("Expected 1 page, got %d", count)
+		t.Errorf("Expected 2 pages, got %d", count)
 	}
 }
