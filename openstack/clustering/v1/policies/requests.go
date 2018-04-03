@@ -49,6 +49,8 @@ func List(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pa
 	}
 
 	return pagination.NewPager(client, url, func(r pagination.PageResult) pagination.Page {
-		return PolicyPage{pagination.LinkedPageBase{PageResult: r}}
+		p := PolicyPage{pagination.MarkerPageBase{PageResult: r}}
+		p.MarkerPageBase.Owner = p
+		return p
 	})
 }

@@ -15,11 +15,7 @@ func TestPolicyList(t *testing.T) {
 	client, err := clients.NewClusteringV1Client()
 	th.AssertNoErr(t, err)
 
-	listOpts := policies.ListOpts{
-		Limit: 1,
-	}
-
-	allPages, err := policies.List(client, listOpts).AllPages()
+	allPages, err := policies.List(client, nil).AllPages()
 	th.AssertNoErr(t, err)
 
 	allPolicies, err := policies.ExtractPolicies(allPages)

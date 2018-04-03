@@ -11,14 +11,14 @@ import (
 	fake "github.com/gophercloud/gophercloud/testhelper/client"
 )
 
-const PolicyListBody = `
+const PolicyListBody1 = `
 {
   "policies": [
     {
       "created_at": "2018-04-02T21:43:30.000000",
       "data": {},
       "domain": null,
-      "id": "15ad976b-c07b-4ef9-9518-aa58cb5cd3a9",
+      "id": "PolicyListBodyID1",
       "name": "delpol",
       "project": "018cd0909fb44cd5bc9b7a3cd664920e",
       "spec": {
@@ -40,44 +40,112 @@ const PolicyListBody = `
 }
 `
 
+const PolicyListBody2 = `
+{
+  "policies": [
+    {
+      "created_at": "2018-04-02T22:29:36.000000",
+      "data": {},
+      "domain": null,
+      "id": "PolicyListBodyID2",
+      "name": "delpol2",
+      "project": "018cd0909fb44cd5bc9b7a3cd664920e",
+      "spec": {
+        "description": "A policy for choosing victim node(s) from a cluster for deletion.",
+        "properties": {
+          "criteria": "OLDEST_FIRST",
+          "destroy_after_deletion": true,
+          "grace_period": 60,
+          "reduce_desired_capacity": false
+        },
+        "type": "senlin.policy.deletion",
+        "version": 1
+      },
+      "type": "senlin.policy.deletion-1.0",
+      "updated_at": null,
+      "user": "fe43e41739154b72818565e0d2580819"
+    }
+  ]
+}
+`
+
 var (
-	ExpectedPolicyCreatedAt, _ = time.Parse(time.RFC3339, "2018-04-02T21:43:30.000000Z")
+	ExpectedPolicyCreatedAt1, _ = time.Parse(time.RFC3339, "2018-04-02T21:43:30.000000Z")
+	ExpectedPolicyCreatedAt2, _ = time.Parse(time.RFC3339, "2018-04-02T22:29:36.000000Z")
 
-	ExpectedPolicies = []policies.Policy{
+	ExpectedPolicies = [][]policies.Policy{
 		{
-			CreatedAt:   &ExpectedPolicyCreatedAt,
-			Data:        map[string]interface{}{},
-			DomainUUID:  "",
-			ID:          "15ad976b-c07b-4ef9-9518-aa58cb5cd3a9",
-			Name:        "delpol",
-			ProjectUUID: "018cd0909fb44cd5bc9b7a3cd664920e",
+			{
+				CreatedAt:   &ExpectedPolicyCreatedAt1,
+				Data:        map[string]interface{}{},
+				DomainUUID:  "",
+				ID:          "PolicyListBodyID1",
+				Name:        "delpol",
+				ProjectUUID: "018cd0909fb44cd5bc9b7a3cd664920e",
 
-			Spec: map[string]interface{}{
-				"description": "A policy for choosing victim node(s) from a cluster for deletion.",
-				"properties": map[string]interface{}{
-					"criteria":                "OLDEST_FIRST",
-					"destroy_after_deletion":  true,
-					"grace_period":            float64(60),
-					"reduce_desired_capacity": false,
+				Spec: map[string]interface{}{
+					"description": "A policy for choosing victim node(s) from a cluster for deletion.",
+					"properties": map[string]interface{}{
+						"criteria":                "OLDEST_FIRST",
+						"destroy_after_deletion":  true,
+						"grace_period":            float64(60),
+						"reduce_desired_capacity": false,
+					},
+					"type":    "senlin.policy.deletion",
+					"version": float64(1),
 				},
-				"type":    "senlin.policy.deletion",
-				"version": float64(1),
+				Type:      "senlin.policy.deletion-1.0",
+				UserUUID:  "fe43e41739154b72818565e0d2580819",
+				UpdatedAt: nil,
 			},
-			Type:      "senlin.policy.deletion-1.0",
-			UserUUID:  "fe43e41739154b72818565e0d2580819",
-			UpdatedAt: nil,
+		},
+		{
+			{
+				CreatedAt:   &ExpectedPolicyCreatedAt2,
+				Data:        map[string]interface{}{},
+				DomainUUID:  "",
+				ID:          "PolicyListBodyID2",
+				Name:        "delpol2",
+				ProjectUUID: "018cd0909fb44cd5bc9b7a3cd664920e",
+
+				Spec: map[string]interface{}{
+					"description": "A policy for choosing victim node(s) from a cluster for deletion.",
+					"properties": map[string]interface{}{
+						"criteria":                "OLDEST_FIRST",
+						"destroy_after_deletion":  true,
+						"grace_period":            float64(60),
+						"reduce_desired_capacity": false,
+					},
+					"type":    "senlin.policy.deletion",
+					"version": float64(1),
+				},
+				Type:      "senlin.policy.deletion-1.0",
+				UserUUID:  "fe43e41739154b72818565e0d2580819",
+				UpdatedAt: nil,
+			},
 		},
 	}
 )
 
 func HandlePolicyList(t *testing.T) {
-	th.Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	th.Mux.HandleFunc("/v1/policies", func(w http.ResponseWriter, r *http.Request) {
 		th.TestMethod(t, r, "GET")
 		th.TestHeader(t, r, "X-Auth-Token", fake.TokenID)
 
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
-		fmt.Fprintf(w, PolicyListBody)
+		r.ParseForm()
+		marker := r.Form.Get("marker")
+		switch marker {
+			case "":
+				fmt.Fprintf(w, PolicyListBody1)
+			case "PolicyListBodyID1":
+				fmt.Fprintf(w, PolicyListBody2)
+			case "PolicyListBodyID2":
+				fmt.Fprintf(w, `{"policies":[]}`)
+			default:
+				t.Fatalf("Unexpected marker: [%s]", marker)
+		}
 	})
 }

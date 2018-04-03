@@ -15,23 +15,27 @@ func TestListPolicies(t *testing.T) {
 
 	HandlePolicyList(t)
 
+	listOpts := policies.ListOpts{
+		Limit: 1,
+	}
+
 	count := 0
-	err := policies.List(fake.ServiceClient(), policies.ListOpts{}).EachPage(func(page pagination.Page) (bool, error) {
-		count++
+	err := policies.List(fake.ServiceClient(), listOpts).EachPage(func(page pagination.Page) (bool, error) {
 		actual, err := policies.ExtractPolicies(page)
 		if err != nil {
 			t.Errorf("Failed to extract policies: %v", err)
 			return false, err
 		}
 
-		th.AssertDeepEquals(t, ExpectedPolicies, actual)
+		th.AssertDeepEquals(t, ExpectedPolicies[count], actual)
+		count++
 
 		return true, nil
 	})
 
 	th.AssertNoErr(t, err)
 
-	if count != 1 {
+	if count != 2 {
 		t.Errorf("Expected 1 page, got %d", count)
 	}
 }

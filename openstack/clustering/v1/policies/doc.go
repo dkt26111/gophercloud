@@ -1,6 +1,6 @@
 /*
 Package policies provides information and interaction with the policies through
-the OpenStack Compute service.
+the OpenStack Clustering service.
 
 Example to List Policies
 

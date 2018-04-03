@@ -34,13 +34,25 @@ func ExtractPolicies(r pagination.Page) ([]Policy, error) {
 
 // PolicyPage contains a list page of all policies from a List call.
 type PolicyPage struct {
-	pagination.LinkedPageBase
+	pagination.MarkerPageBase
 }
 
 // IsEmpty determines if a PolicyPage contains any results.
 func (page PolicyPage) IsEmpty() (bool, error) {
 	policies, err := ExtractPolicies(page)
 	return len(policies) == 0, err
+}
+
+// LastMarker returns the last policy ID in a ListResult.
+func (r PolicyPage) LastMarker() (string, error) {
+	policies, err := ExtractPolicies(r)
+	if err != nil {
+		return "", err
+	}
+	if len(policies) == 0 {
+		return "", nil
+	}
+	return policies[len(policies)-1].ID, nil
 }
 
 func (r *Policy) UnmarshalJSON(b []byte) error {
