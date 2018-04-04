@@ -22,5 +22,31 @@ Example to List Policies
 		fmt.Printf("%+v\n", policy)
 	}
 
+
+Example to Create a policy
+
+	createOpts := policies.CreateOpts{
+    	Name: "scaling_policy",
+    	Spec: map[string]interface{}{
+			"type":       "senlin.policy.scaling",
+			"version":    "1.0",
+			"properties": propsPolicy,
+    	},
+	}
+	propsPolicy := &map[string]interface{}{
+		"adjustment": adjustsPolicy,
+		"event":      "CLUSTER_SCALE_IN",
+	}
+	adjustsPolicy := &map[string]interface{}{
+		"min_step": 1,
+		"number":   1,
+		"type":     "CHANGE_IN_CAPACITY",
+	}
+
+	policy, err := policies.Create(clusteringClient, createOpts).Extract()
+	if err != nil {
+		panic(err)
+	}
+
 */
 package policies

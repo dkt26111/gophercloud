@@ -54,3 +54,32 @@ func List(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pa
 		return p
 	})
 }
+
+type CreateOpts struct {
+	Name string `json:"name"`
+	Spec Spec `json:"spec"`
+}
+
+type Spec struct {
+	Description string `"json:description"`
+	Properties map[string]interface{} `"json:properties"`
+	Type string `"json:type"`
+	Version string `"json:version"`
+}
+
+func (opts CreateOpts) ToPolicyCreateMap() (map[string]interface{}, error) {
+	return gophercloud.BuildRequestBody(opts, "policy")
+}
+
+// Create makes a request against the API to create an aggregate.
+func Create(client *gophercloud.ServiceClient, opts CreateOpts) (r CreateResult) {
+	b, err := opts.ToPolicyCreateMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = client.Post(policyCreateURL(client), b, &r.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{201},
+	})
+	return
+}

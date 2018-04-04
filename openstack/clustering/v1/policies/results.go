@@ -75,3 +75,19 @@ func (r *Policy) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
+
+type policyResult struct {
+	gophercloud.Result
+}
+
+func (r policyResult) Extract() (*Policy, error) {
+	var s struct {
+		Policy *Policy `json:"policy"`
+	}
+	err := r.ExtractInto(&s)
+	return s.Policy, err
+}
+
+type CreateResult struct {
+	policyResult
+}
